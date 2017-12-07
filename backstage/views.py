@@ -133,3 +133,7 @@ def listfile(request):
     for item in fname:
         fdict.append({'filename':item})
     return JsonResponse({'filelist':fdict})
+
+def backupfile(request):
+    
+    return JsonResponse({'file':'true'})
