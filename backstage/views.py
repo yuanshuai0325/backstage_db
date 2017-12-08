@@ -4,8 +4,9 @@ from __future__ import unicode_literals
 from django.shortcuts import render, HttpResponse
 from backstage.models import UserInfo, Status, Role
 from werkzeug.security import generate_password_hash, check_password_hash
-import time
 import os
+import time
+import shutil
 from django.http import JsonResponse
 
 from django.conf import settings
@@ -135,5 +136,48 @@ def listfile(request):
     return JsonResponse({'filelist':fdict})
 
 def backupfile(request):
-    
-    return JsonResponse({'file':'true'})
+    jarlist = request.POST.lists()[0][1]
+    rmap = []
+    dellist = []
+    repo_map = {
+        'as-gateway-web': 'asgw',
+        'as-interface-monitor':'asmsrv',
+        'as-service-monitor':'asmsrv',
+        'as-service-push':'asmsrv',
+        'rc-service-code':'code',
+        'rc-service-share':'code',
+        'bbs':'gw',
+        'rc-gateway-web':'gw',
+        'rc-service-common':'msrv',
+        'rc-service-file':'msrv',
+        'rc-service-monitor':'msrv',
+        'rc-service-msg':'msrv',
+        'rc-service-solr':'msrv',
+        'rc-service-user':'msrv',
+        'rc-service-ofs':'tmsrv',
+        'rc-service-itm':'tmsrv'
+    }
+    repo_path = {
+        'asgw': '/repo/tongren/asgw',
+        'asmsrv': '/repo/tongren/asmsrv',
+        'code': '/repo/tongren/code',
+        'gw': '/repo/tongren/gw',
+        'msrv': '/repo/tongren/msrv',
+        'tmsrv': '/repo/tongren/tmsrv',
+    }
+    for item in jarlist:
+        temp = item.replace('-0.0.1-SNAPSHOT.jar', '').replace('.jar', '')
+        print temp
+        if repo_map.get(temp):
+            rmap.append(repo_map.get(temp))
+        else:
+            dellist.append(item)
+            jarlist.remove(item)
+    rmap = set(rmap)
+    for item in rmap:
+        shutil.copytree(os.path.join(repo_path.get(item), 'lastest'), os.path.join(repo_path.get(item), time.strftime('%Y%m%d%H%M%S')))
+    for item in jarlist:
+        temp = item.replace('-0.0.1-SNAPSHOT.jar', '').replace('.jar', '')
+        shutil.copyfile(os.path.join('/fupload/lastest/', item), os.path.join(repo_path.get(repo_map.get(temp)), 'lastest/'+item))
+    print jarlist,dellist
+    return JsonResponse({'successlist' : jarlist, 'faillist' : dellist})
