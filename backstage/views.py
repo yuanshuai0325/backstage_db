@@ -197,4 +197,9 @@ def backupfile(request):
     return JsonResponse({'successlist' : successlist, 'faillist' : faillist})
 
 def updatefile(request):
+    arg = request.POST.list()[0][1]
+    data = handledata(arg)
+    successlist = data[0]
+    faillist = data[1]
+    rmap = data[2]
     pass
