@@ -11,7 +11,7 @@ from django.http import JsonResponse
 
 from django.conf import settings
 
-from scripts.handledata import handledata, repo_map, repo_path
+from scripts.handledata import handledata, repo_map, repo_path, execcommand
 
 # Create your views here.
 def adduser(request):
@@ -197,9 +197,10 @@ def backupfile(request):
     return JsonResponse({'successlist' : successlist, 'faillist' : faillist})
 
 def updatefile(request):
-    arg = request.POST.list()[0][1]
+    arg = request.POST.lists()[0][1]
     data = handledata(arg)
     successlist = data[0]
     faillist = data[1]
     rmap = data[2]
-    pass
+    data = execcommand(rmap)
+    return JsonResponse({'successdata' : data, 'faillist' : faillist})

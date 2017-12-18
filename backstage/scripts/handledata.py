@@ -62,16 +62,17 @@ remote_dir = {
 rsync_server = '192.168.154.100'
 
 def handledata(data):
-    successlist = data
+    successlist = data[:]
     rmap = []
     dellist = []
     for item in data:
+        print item
         temp = item.replace('-0.0.1-SNAPSHOT.jar', '').replace('.jar', '')
         if repo_map.get(temp):
             rmap.append(repo_map.get(temp))
         else:
             dellist.append(item)
-            success.remove(item)
+            successlist.remove(item)
     rmap = list(set(rmap))
     return (successlist, dellist, rmap)
 
@@ -82,9 +83,12 @@ def execcommand(data):
         path = remote_dir.get(item)
         hosts = host_map.get(item)
         commands[item] = ("pepper -L '%s' cmd.run 'rsync -av --password-file=/etc/rsync.pass --delete --exclude logs root@%s::%s %s'" % (', '.join(hosts), rsync_server, item, path))
+    print commands
     for execitem in commands:
         result = subprocess.Popen(commands[execitem], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read()
-        results[execitem] = Prest(json.loads(result).get("return"))
-    print results
+        #results[execitem] = Prest(json.loads(result).get("return"))
+        results[execitem] = json.loads(result).get("return")
+    return results
 
-execcommand(['gw', 'asgw'])
+
+#print execcommand(['gw'])
