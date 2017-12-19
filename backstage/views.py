@@ -204,3 +204,18 @@ def updatefile(request):
     rmap = data[2]
     data = execcommand(rmap)
     return JsonResponse({'successdata' : data, 'faillist' : faillist})
+
+def repodir(request):
+    repodir = []
+    for item in repo_map:
+        repodir.append({'label' : item, 'value': item})
+    return JsonResponse({'repodir': repodir})
+
+def prodir(request):
+    projectdir = []
+    dirname = repo_map.get(request.GET.get('dirname'))
+    prodir = os.listdir(repo_path.get(dirname))
+    prodir.remove('lastest')
+    for item in prodir:
+        projectdir.append({'dir':item})
+    return JsonResponse({'prodir' : projectdir, 'path': repo_path.get(dirname)})
