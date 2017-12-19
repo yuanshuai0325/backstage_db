@@ -218,4 +218,12 @@ def prodir(request):
     prodir.remove('lastest')
     for item in prodir:
         projectdir.append({'dir':item})
-    return JsonResponse({'prodir' : projectdir, 'path': repo_path.get(dirname)})
+    return JsonResponse({'prodir' : projectdir, 'path': repo_path.get(dirname), 'project' : dirname})
+
+def rollbackpath(request):
+    sdir = request.POST.get('sdir')
+    project = request.POST.get('project')
+    rbpath = repo_path.get(project)
+    os.system("\cp -rp %s %s" % (os.path.join(rbpath, sdir)+'/*', os.path.join(rbpath, 'lastest')))
+    data = execcommand(project)
+    return JsonResponse({'successdata' : data})
