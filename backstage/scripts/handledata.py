@@ -35,6 +35,24 @@ repo_map = {
     'as-service-monitor':'asmsrv',
     'as-service-push':'asmsrv',
 }
+short_name = {
+    'rc-gateway-web':'gateway',
+    'bbs':'bbs',
+    'rc-service-common':'common',
+    'rc-service-file':'file',
+    'rc-service-monitor':'monitor',
+    'rc-service-msg':'msg',
+    'rc-service-solr':'solr',
+    'rc-service-user':'user',
+    'rc-service-ofs':'ofs',
+    'rc-service-itm':'itm',
+    'rc-service-code':'code',
+    'rc-service-share':'share',
+    'as-gateway-web': 'as-gateway',
+    'as-interface-monitor':'as-interface-monitor',
+    'as-service-monitor':'as-monitor',
+    'as-service-push':'as-push',
+}
 repo_path = { 
     'gw': '/repo/tongren/gw',
     'msrv': '/repo/tongren/msrv',
@@ -76,6 +94,14 @@ def handledata(data):
     rmap = list(set(rmap))
     return (successlist, dellist, rmap)
 
+def handlesalt(result):
+    data = json.loads(result).get("return")
+    for index,item in enumerate(data):
+        for itemin in item:
+            if data[index][itemin] != False:
+                data[index][itemin] =  data[index][itemin].replace('\n','<br>')
+    return data
+
 def execcommand(data):
     commands = {}
     results = {}
@@ -87,8 +113,13 @@ def execcommand(data):
     for execitem in commands:
         result = subprocess.Popen(commands[execitem], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read()
         #results[execitem] = Prest(json.loads(result).get("return"))
-        results[execitem] = json.loads(result).get("return")
+        execdata = handlesalt(result)
+        results[execitem] = execdata
     return results
+
+def execcmdrun(tgt, pro, cmd):
+    command = "pepper '%s' cmd.run 'supervisorctl %s %s'" % (tgt, cmd, pro)
+    return command
 
 
 #print execcommand(['gw'])

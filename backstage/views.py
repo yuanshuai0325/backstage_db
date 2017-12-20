@@ -11,7 +11,7 @@ from django.http import JsonResponse
 
 from django.conf import settings
 
-from scripts.handledata import handledata, repo_map, repo_path, execcommand
+from scripts.handledata import handledata, repo_map, repo_path, execcommand, host_map, short_name, execcmdrun
 
 # Create your views here.
 def adduser(request):
@@ -215,7 +215,9 @@ def prodir(request):
     projectdir = []
     dirname = repo_map.get(request.GET.get('dirname'))
     prodir = os.listdir(repo_path.get(dirname))
+    print prodir
     prodir.remove('lastest')
+    prodir.sort()
     for item in prodir:
         projectdir.append({'dir':item})
     return JsonResponse({'prodir' : projectdir, 'path': repo_path.get(dirname), 'project' : dirname})
@@ -224,6 +226,33 @@ def rollbackpath(request):
     sdir = request.POST.get('sdir')
     project = request.POST.get('project')
     rbpath = repo_path.get(project)
-    os.system("\cp -rp %s %s" % (os.path.join(rbpath, sdir)+'/*', os.path.join(rbpath, 'lastest')))
-    data = execcommand(project)
+    shutil.move(os.path.join(rbpath, 'lastest'), os.path.join(rbpath, 'rollback'+sdir))
+    shutil.copytree(os.path.join(rbpath, sdir), os.path.join(rbpath, 'lastest'))
+    data = execcommand([project])
     return JsonResponse({'successdata' : data})
+
+def deldir(request):
+    deldir = request.POST.get('deldir')
+    project = request.POST.get('project')
+    rbpath = repo_path.get(project)
+    os.system('rm -rf %s' % os.path.join(rbpath, deldir))
+    return HttpResponse('true')
+
+def prohosts(request):
+    hosts = []
+    project = request.GET.get('project')
+    print project
+    rmap = repo_map.get(project)
+    print rmap
+    hmap = host_map.get(rmap)
+    for host in hmap:
+        hosts.append({'host':host})
+    return JsonResponse({'hosts' : hosts})
+
+def cmdrun(request):
+    tgt = request.POST.get('tgt')
+    project = request.POST.get('project')
+    spro = short_name.get(project)
+    cmd = request.POST.get('cmd')
+    data = execcmdrun(tgt, spro, cmd)
+    return HttpResponse(data)

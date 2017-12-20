@@ -1,5 +1,5 @@
 from django.conf.urls import url
-from backstage.views import adduser, deluser, veruser, chname, chpasswd, chstatus, chrole, queryuser, postfile, delfile, listfile, backupfile, updatefile, repodir, prodir, rollbackpath
+from backstage.views import adduser, deluser, veruser, chname, chpasswd, chstatus, chrole, queryuser, postfile, delfile, listfile, backupfile, updatefile, repodir, prodir, rollbackpath, deldir, prohosts, cmdrun
 
 urlpatterns = [
     url(r'adduser', adduser),
@@ -18,4 +18,7 @@ urlpatterns = [
     url(r'repodir', repodir),
     url(r'prodir', prodir),
     url(r'rollbackpath', rollbackpath),
+    url(r'deldir', deldir),
+    url(r'prohosts', prohosts),
+    url(r'cmdrun', cmdrun),
 ]
