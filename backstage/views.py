@@ -13,6 +13,13 @@ from django.conf import settings
 
 from scripts.handledata import handledata, repo_map, repo_path, execcommand, host_map, short_name, execcmdrun
 
+# 2017-12-22 token
+from rest_framework.authtoken.models import Token
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    if created:
+        Token.objects.create(user=instance)
+
+
 # Create your views here.
 def adduser(request):
     name, password, status, role = request.GET['name'], generate_password_hash(str(request.GET['password'])), request.GET['status'], request.GET['role']

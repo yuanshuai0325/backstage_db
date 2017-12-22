@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'backstage',
+# token setting test 2017-12-22 16:00
+    'rest_framework.authtoken',
 ]
 
 MIDDLEWARE = [
