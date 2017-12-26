@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from django.shortcuts import render, HttpResponse
 from backstage.models import UserInfo, Status, Role
 from werkzeug.security import generate_password_hash, check_password_hash
+import jwt
 import os
 import time
 import shutil
@@ -14,10 +15,10 @@ from django.conf import settings
 from scripts.handledata import handledata, repo_map, repo_path, execcommand, host_map, short_name, execcmdrun
 
 # 2017-12-22 token
-from rest_framework.authtoken.models import Token
-def create_auth_token(sender, instance=None, created=False, **kwargs):
-    if created:
-        Token.objects.create(user=instance)
+#from rest_framework.authtoken.models import Token
+#def create_auth_token(sender, instance=None, created=False, **kwargs):
+#    if created:
+#        Token.objects.create(user=instance)
 
 
 # Create your views here.
@@ -67,7 +68,9 @@ def veruser(request):
         return HttpResponse("%s is not exists" % name)
     dpassword = data.password
     if check_password_hash(dpassword, password):
-        return JsonResponse({'exec':'true'})
+        XToken = jwt.encode({'name': name, 'password' : dpassword}, 'backstage_db', algorithm='HS256')
+        print XToken
+        return JsonResponse({'exec':'true', 'XToken':XToken})
     else:
         return JsonResponse({'exec':'false'})
 

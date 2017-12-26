@@ -4,11 +4,11 @@ from __future__ import unicode_literals
 from django.db import models
 
 # 2017-12-22 token test
-from django.contrib.auth.models import User
-@receiver(post_save, sender=User)
-def create_auth_token(sender, instance=None, created=False, **kwargs):
-    if created:
-        Token.objects.create(user=instance)
+#from django.contrib.auth.models import User
+#@receiver(post_save, sender=User)
+#def create_auth_token(sender, instance=None, created=False, **kwargs):
+#    if created:
+#        Token.objects.create(user=instance)
 
 # Create your models here.
 
