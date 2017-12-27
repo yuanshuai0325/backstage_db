@@ -60,6 +60,8 @@ def deluser(request):
 #        return HttpResponse('false')
 
 def veruser(request):
+    print request.COOKIES.get('XToken')
+    print request.COOKIES.get('expiretime')
     name = request.POST.get('name')
     password = str(request.POST.get('password'))
     try:
@@ -67,10 +69,11 @@ def veruser(request):
     except Exception:
         return HttpResponse("%s is not exists" % name)
     dpassword = data.password
+    role = data.role.urole
     if check_password_hash(dpassword, password):
-        XToken = jwt.encode({'name': name, 'password' : dpassword}, 'backstage_db', algorithm='HS256')
-        print XToken
-        return JsonResponse({'exec':'true', 'XToken':XToken})
+        XToken = jwt.encode({'name': name, 'password' : dpassword, 'role' : role}, 'backstage_db', algorithm='HS256')
+        expiretime = time.time() + 100
+        return JsonResponse({'exec':'true', 'XToken':XToken, 'expiretime': expiretime})
     else:
         return JsonResponse({'exec':'false'})
 
