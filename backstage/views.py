@@ -60,6 +60,7 @@ def deluser(request):
 #        return HttpResponse('false')
 
 def veruser(request):
+    #print type(request.body) JSON数据传入为字符串
     print request.COOKIES.get('XToken')
     print request.COOKIES.get('expiretime')
     name = request.POST.get('name')
