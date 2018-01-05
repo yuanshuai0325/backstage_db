@@ -72,12 +72,32 @@ def veruser(request):
     dpassword = data.password
     role = data.role.urole
     if check_password_hash(dpassword, password):
-        XToken = jwt.encode({'name': name, 'password' : dpassword, 'role' : role}, 'backstage_db', algorithm='HS256')
         expiretime = time.time() + 100
-        return JsonResponse({'exec':'true', 'XToken':XToken, 'expiretime': expiretime})
+        XToken = jwt.encode({'name': name, 'password' : dpassword, 'role' : role, 'expiretime': expiretime}, 'backstage_db', algorithm='HS256')
+        return JsonResponse({'exec':'true', 'XToken':XToken})
     else:
         return JsonResponse({'exec':'false'})
 
+def userinfo(request):
+    CXToken = request.COOKIES.get('XToken')
+    XToken = jwt.decode(CXToken, 'backstage_db', 'HS256')
+    name = XToken.get('name')
+    dpassword = XToken.get('password')
+    role = XToken.get('role')
+    expiretime = XToken.get('expiretime')
+    now = time.time()
+    if expiretime - now < 0:
+        return JsonResponse({'exec':'false'})
+    try:
+        data = UserInfo.objects.get(name=name)
+    except Exception:
+        return JsonResponse({'exec':'false'})
+    print dpassword, data.password
+    if dpassword != data.password:
+        return JsonResponse({'exec':'false'})
+    else:
+        print '11111'
+        return JsonResponse({'exec':'false', 'role':[role]})
 
 def chname(request):
     id = request.GET['id']
