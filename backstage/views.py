@@ -87,19 +87,14 @@ def userinfo(request):
     expiretime = XToken.get('expiretime')
     now = time.time()
     if expiretime - now < 0:
-        print 'token 超时'
-        return JsonResponse({'exec':'false'})
+        return JsonResponse({'exec':'false', 'reason':'token超时,请重新登录'})
     try:
         data = UserInfo.objects.get(name=name)
     except Exception:
-        print '用户名不对'
-        return JsonResponse({'exec':'false'})
-    print dpassword, data.password
+        return JsonResponse({'exec':'false', 'reason':'用户不存在'})
     if dpassword != data.password:
-        print '密码不对'
-        return JsonResponse({'exec':'false'})
+        return JsonResponse({'exec':'false', 'reason':'密码不正确'})
     else:
-        print '11111'
         return JsonResponse({'exec':'true', 'role':[role]})
 
 def chname(request):
