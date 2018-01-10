@@ -71,9 +71,13 @@ def veruser(request):
         return HttpResponse("%s is not exists" % name)
     dpassword = data.password
     role = data.role.urole
+    userid = data.id
+    status = data.status.ustatus
+    code = data.status.id
+    print userid,status,code
     if check_password_hash(dpassword, password):
-        expiretime = time.time() + 100
-        XToken = jwt.encode({'name': name, 'password' : dpassword, 'role' : role, 'expiretime': expiretime}, 'backstage_db', algorithm='HS256')
+        expiretime = time.time() + 1000
+        XToken = jwt.encode({'name': name, 'userid' : userid, 'password' : dpassword, 'status' : status, 'code' : code, 'role' : role, 'expiretime': expiretime}, 'backstage_db', algorithm='HS256')
         return JsonResponse({'exec':'true', 'XToken':XToken})
     else:
         return JsonResponse({'exec':'false'})
@@ -82,7 +86,10 @@ def userinfo(request):
     CXToken = request.COOKIES.get('XToken')
     XToken = jwt.decode(CXToken, 'backstage_db', 'HS256')
     name = XToken.get('name')
+    userid = XToken.get('userid')
     dpassword = XToken.get('password')
+    status = XToken.get('status')
+    code = XToken.get('code')
     role = XToken.get('role')
     expiretime = XToken.get('expiretime')
     now = time.time()
@@ -95,7 +102,7 @@ def userinfo(request):
     if dpassword != data.password:
         return JsonResponse({'exec':'false', 'reason':'密码不正确'})
     else:
-        return JsonResponse({'exec':'true', 'role':[role]})
+        return JsonResponse({'exec':'true', 'username' : name, 'userid' : userid, 'status' : status, 'code' : code, 'role':[role]})
 
 def chname(request):
     id = request.GET['id']
