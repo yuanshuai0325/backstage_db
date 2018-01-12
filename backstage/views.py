@@ -68,7 +68,8 @@ def veruser(request):
     try:
         data = UserInfo.objects.get(name=name)
     except Exception:
-        return HttpResponse("%s is not exists" % name)
+        reason = "用户 %s 不存在" % name
+        return JsonResponse({'exec':'false', 'reason': reason})
     dpassword = data.password
     role = data.role.urole
     userid = data.id
@@ -76,11 +77,14 @@ def veruser(request):
     code = data.status.id
     print userid,status,code
     if check_password_hash(dpassword, password):
+        if int(code) != 1:
+            reason = "用户 %s 被禁用" % name
+            return JsonResponse({'exec':'false', 'reason':reason})
         expiretime = time.time() + 1000
         XToken = jwt.encode({'name': name, 'userid' : userid, 'password' : dpassword, 'status' : status, 'code' : code, 'role' : role, 'expiretime': expiretime}, 'backstage_db', algorithm='HS256')
         return JsonResponse({'exec':'true', 'XToken':XToken})
     else:
-        return JsonResponse({'exec':'false'})
+        return JsonResponse({'exec':'false', 'reason':'用户密码错误'})
 
 def userinfo(request):
     CXToken = request.COOKIES.get('XToken')
@@ -101,6 +105,8 @@ def userinfo(request):
         return JsonResponse({'exec':'false', 'reason':'用户不存在'})
     if dpassword != data.password:
         return JsonResponse({'exec':'false', 'reason':'密码不正确'})
+    elif int(code) != 1:
+        return JsonResponse({'exec':'false', 'reason':'用户被禁用'}) 
     else:
         return JsonResponse({'exec':'true', 'username' : name, 'userid' : userid, 'status' : status, 'code' : code, 'role':[role]})
 
@@ -116,13 +122,23 @@ def chname(request):
     return HttpResponse(True)
 
 def chpasswd(request):
-    id = request.GET['id']
-    password = generate_password_hash(str(request.GET['password']))
+    userid = str(request.POST.get('userid'))
+    opassword = str(request.POST.get('opassword'))
+    cpassword = generate_password_hash(str(request.POST.get('cpassword')))
+    print userid, opassword, cpassword
     try:
-        UserInfo.objects.filter(id=id).update(password=password)
+        password = UserInfo.objects.get(id=userid).password
     except Exception as e:
-        return HttpResponse(e)
-    return HttpResponse(True)
+        return JsonResponse({'exec':'false', 'reason':'用户不存在'})
+    if check_password_hash(password, opassword):
+        print opassword
+        try:
+            UserInfo.objects.filter(id=userid).update(password=cpassword)
+        except Exception as e:
+            return JsonResponse({'exec':'false', 'reason':'密码修改失败'})
+    else:
+         return JsonResponse({'exec':'false', 'reason':'原密码错误'})
+    return JsonResponse({'exec':'true'})
 
 def chstatus(request):
     id = request.GET['id']
