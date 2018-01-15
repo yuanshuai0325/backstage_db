@@ -1,11 +1,12 @@
 from django.conf.urls import url
-from backstage.views import adduser, deluser, veruser, userinfo, chname, chpasswd, chstatus, chrole, queryuser, postfile, delfile, listfile, backupfile, updatefile, repodir, prodir, rollbackpath, deldir, prohosts, cmdrun
+from backstage.views import adduser, deluser, veruser, userinfo, getalluser, chname, chpasswd, chstatus, chrole, queryuser, postfile, delfile, listfile, backupfile, updatefile, repodir, prodir, rollbackpath, deldir, prohosts, cmdrun
 
 urlpatterns = [
     url(r'adduser', adduser),
     url(r'deluser', deluser),
     url(r'veruser', veruser),
     url(r'userinfo', userinfo),
+    url(r'getalluser', getalluser),
     url(r'chname', chname),
     url(r'chpasswd', chpasswd),
     url(r'chstatus', chstatus),

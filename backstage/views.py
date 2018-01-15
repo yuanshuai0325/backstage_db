@@ -23,27 +23,46 @@ from scripts.handledata import handledata, repo_map, repo_path, execcommand, hos
 
 # Create your views here.
 def adduser(request):
-    name, password, status, role = request.GET['name'], generate_password_hash(str(request.GET['password'])), request.GET['status'], request.GET['role']
+    name, password, status, role = request.POST.get('username'), generate_password_hash(str(request.POST.get('password'))), request.POST.get('status'), request.POST.get('role')
+    if status:
+        status = "1"
+    else:
+        status = "0"
     if UserInfo.objects.filter(name=name):
-        return HttpResponse('user already exist')
+        reason = "用户 %s 已存在" % name
+        return JsonResponse({'exec':'false', 'reason': reason})
     if not Status.objects.filter(id=status):
-        return HttpResponse('status is not exist')
+        reason = "用户状态不存在"
+        return JsonResponse({'exec':'false', 'reason': reason})
     if not Role.objects.filter(id=role):
-        return HttpResponse('role is not exist')
+        reason = "用户角色不存在"
+        return JsonResponse({'exec':'false', 'reason': reason})
     try:
         adddata = UserInfo(name=name, password=password, status_id=status, role_id=role)
         adddata.save()
+        reason = "用户 %s 添加成功" % name
+        return JsonResponse({'exec': 'true', 'reason': reason})
     except Exception as e:
-        return HttpResponse(e)
-    return HttpResponse('adduser %s' % name)
+        reason = "用户 %s 添加失败" % name
+        return JsonResponse({'exec':'false', 'reason': reason})
 
 def deluser(request):
-    id = request.GET['id']
+    id = request.POST.get('userid')
+    name = request.POST.get('username')
+    try:
+        data = UserInfo.objects.get(id=id)
+    except Exception as e:
+        return JsonResponse({'exec':'false', 'reason': '用户userid不存在'})
+    if data.name != name:
+        reason = "userid 对应用户名 %s 不存在" % name
+        return JsonResponse({'exec':'false', 'reason': reason})
     try:
         UserInfo.objects.filter(id=id).delete()
+        reason = "用户 %s 已删除" % name
+        return JsonResponse({'exec':'true', 'reason': reason})
     except Exception as e:
-        return HttpResponse(e)
-    return HttpResponse("OK!")
+        reason = "用户 %s 删除失败" % name
+        return JsonResponse({'exec':'false', 'reason': reason})
 
 #使用Get请求
 #def veruser(request):
@@ -75,7 +94,6 @@ def veruser(request):
     userid = data.id
     status = data.status.ustatus
     code = data.status.id
-    print userid,status,code
     if check_password_hash(dpassword, password):
         if int(code) != 1:
             reason = "用户 %s 被禁用" % name
@@ -105,10 +123,22 @@ def userinfo(request):
         return JsonResponse({'exec':'false', 'reason':'用户不存在'})
     if dpassword != data.password:
         return JsonResponse({'exec':'false', 'reason':'密码不正确'})
-    elif int(code) != 1:
+    elif int(code) != data.status_id:
         return JsonResponse({'exec':'false', 'reason':'用户被禁用'}) 
     else:
         return JsonResponse({'exec':'true', 'username' : name, 'userid' : userid, 'status' : status, 'code' : code, 'role':[role]})
+
+def getalluser(request):
+    newdata = []
+    try:
+        data = UserInfo.objects.values('id', 'name','status','role__urole')
+        for item in data:
+            print item['status']
+            #newdata.append({'userid':item['id'], 'username':item['name'], 'xcode':'x', 'role':item['role__urole']})
+            newdata.append({'userid':item['id'], 'username':item['name'], 'xcode':('启用' if str(item['status']) == '1' else '禁用'), 'role':item['role__urole']})
+    except Exception as e:
+        return JsonResponse({'exec':'false', 'reason':'数据库获取失败'})
+    return JsonResponse({'exec':'true', 'data':newdata})
 
 def chname(request):
     id = request.GET['id']
@@ -141,13 +171,26 @@ def chpasswd(request):
     return JsonResponse({'exec':'true'})
 
 def chstatus(request):
-    id = request.GET['id']
-    status = request.GET['status']
+    id = request.POST.get('userid')
+    name = request.POST.get('username')
+    xcode = request.POST.get('xcode')
+    print id, name, xcode
+    code = 1 if xcode == "启用" else 2
     try:
-        UserInfo.objects.filter(id=id).update(status=status)
+        data = UserInfo.objects.get(id=id)
     except Exception as e:
-        return HttpResponse(e)
-    return HttpResponse(True)
+        reason = 'userid %s 不存在' % id
+        return JsonResponse({'exec':'false', 'reason':reason})
+    if name != data.name:
+        reason = '用户 %s 与userid不符'
+        return JsonResponse({'exec':'false', 'reason':reason})
+    try:
+        UserInfo.objects.filter(id=id).update(status=code)
+        reason = '用户 %s 已 %s' % (name, xcode)
+        return JsonResponse({'exec':'true', 'reason':reason})
+    except Exception as e:
+        reason = '用户 %s %s 失败' % (name, xcode)
+        return JsonResponse({'exec':'false', 'reason':reason})
 
 def chrole(request):
     id = request.GET['id']
