@@ -155,6 +155,7 @@ def chpasswd(request):
     userid = str(request.POST.get('userid'))
     opassword = str(request.POST.get('opassword'))
     cpassword = generate_password_hash(str(request.POST.get('cpassword')))
+    print '*'*10
     print userid, opassword, cpassword
     try:
         password = UserInfo.objects.get(id=userid).password
@@ -169,6 +170,28 @@ def chpasswd(request):
     else:
          return JsonResponse({'exec':'false', 'reason':'原密码错误'})
     return JsonResponse({'exec':'true'})
+
+def admincpw(request):
+    print '-'*10
+    id = str(request.POST.get('userid'))
+    name = request.POST.get('username')
+    password = generate_password_hash(str(request.POST.get('password')))
+    try:
+        data = UserInfo.objects.get(id=id)
+    except Exception as e:
+        reason = 'userid %s 不存在' % id
+        return JsonResponse({'exec':'false', 'reason':reason})
+    print '-'*10
+    print data.name
+    if name != data.name:
+        reason = '用户 %s 与userid不符'
+        return JsonResponse({'exec':'false', 'reason':reason})
+    try:
+        UserInfo.objects.filter(id=id).update(password=password)
+    except Exception as e:
+        return JsonResponse({'exec':'false', 'reason':'密码修改失败'})
+    reason = '用户 %s 密码修改成功' % name
+    return JsonResponse({'exec':'true', 'reason':reason})
 
 def chstatus(request):
     id = request.POST.get('userid')
@@ -305,9 +328,13 @@ def updatefile(request):
 
 def repodir(request):
     repodir = []
-    for item in repo_map:
-        repodir.append({'label' : item, 'value': item})
-    return JsonResponse({'repodir': repodir})
+    try:
+        for item in repo_map:
+            repodir.append({'label' : item, 'value': item})
+        return JsonResponse({'exec':'true','repodir': repodir})
+    except Exception as e:
+        reason = "repo_map列表获取失败"
+        return JsonResponse({'exec':'false', 'reason':reason})
 
 def prodir(request):
     projectdir = []
