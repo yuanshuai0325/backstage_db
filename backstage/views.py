@@ -367,17 +367,25 @@ def prohosts(request):
     hosts = []
     project = request.GET.get('project')
     print project
-    rmap = repo_map.get(project)
-    print rmap
-    hmap = host_map.get(rmap)
-    for host in hmap:
-        hosts.append({'host':host})
-    return JsonResponse({'hosts' : hosts})
+    try:
+        rmap = repo_map.get(project)
+        print rmap
+        hmap = host_map.get(rmap)
+        for host in hmap:
+            hosts.append({'host':host})
+        return JsonResponse({'exec':'true', 'hosts' : hosts})
+    except Exception as e:
+        reason = "未获取到 %s" % project 
+        return JsonResponse({'exec':'false', 'reason':reason})
 
 def cmdrun(request):
-    tgt = request.POST.get('tgt')
-    project = request.POST.get('project')
-    spro = short_name.get(project)
-    cmd = request.POST.get('cmd')
-    data = execcmdrun(tgt, spro, cmd)
-    return HttpResponse(data)
+    try:
+        tgt = request.POST.get('tgt')
+        project = request.POST.get('project')
+        spro = short_name.get(project)
+        cmd = request.POST.get('cmd')
+        data = execcmdrun(tgt, spro, cmd)
+        return JsonResponse({'exec':'true', 'cmdreturn':data})
+    except Exception as e:
+        reason  = "%s %s %s 执行失败" % (tgt, project, cmd)
+        return JsonResponse({'exec':'false', 'reason':reason})

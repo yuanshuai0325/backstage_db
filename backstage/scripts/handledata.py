@@ -117,8 +117,10 @@ def execcommand(data):
         results[execitem] = execdata
     return results
 
+import time
 def execcmdrun(tgt, pro, cmd):
     command = "pepper '%s' cmd.run 'supervisorctl %s %s'" % (tgt, cmd, pro)
+    time.sleep(2)
     return command
 
 
