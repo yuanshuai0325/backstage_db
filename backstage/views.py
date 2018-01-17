@@ -338,14 +338,18 @@ def repodir(request):
 
 def prodir(request):
     projectdir = []
-    dirname = repo_map.get(request.GET.get('dirname'))
-    prodir = os.listdir(repo_path.get(dirname))
-    print prodir
-    prodir.remove('lastest')
-    prodir.sort()
-    for item in prodir:
-        projectdir.append({'dir':item})
-    return JsonResponse({'prodir' : projectdir, 'path': repo_path.get(dirname), 'project' : dirname})
+    try:
+        dirname = repo_map.get(request.GET.get('dirname'))
+        prodir = os.listdir(repo_path.get(dirname))
+        print prodir
+        prodir.remove('lastest')
+        prodir.sort()
+        for item in prodir:
+            projectdir.append({'dir':item})
+        return JsonResponse({'exec' : 'true', 'prodir' : projectdir, 'path': repo_path.get(dirname), 'project' : dirname})
+    except Exception as e:
+        reason = "项目信息获取失败"
+        return JsonResponse({'exec':'false', 'reason':reason})
 
 def rollbackpath(request):
     sdir = request.POST.get('sdir')
@@ -357,11 +361,16 @@ def rollbackpath(request):
     return JsonResponse({'successdata' : data})
 
 def deldir(request):
-    deldir = request.POST.get('deldir')
-    project = request.POST.get('project')
-    rbpath = repo_path.get(project)
-    os.system('rm -rf %s' % os.path.join(rbpath, deldir))
-    return HttpResponse('true')
+    try:
+        deldir = request.POST.get('deldir')
+        project = request.POST.get('project')
+        rbpath = repo_path.get(project)
+        os.system('rm -rf %s' % os.path.join(rbpath, deldir))
+        reason = "%s %s 已删除" % (project, deldir)
+        return JsonResponse({'exec' : 'true', 'reason':reason})
+    except Exception as e:
+        reason = "%s %s 删除失败" % (project, deldir)
+        return JsonResponse({'exec' : 'false', 'reason':reason})
 
 def prohosts(request):
     hosts = []
