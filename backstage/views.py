@@ -236,12 +236,18 @@ def queryuser(request):
 
 
 def postfile(request):
-    fname = request.FILES.get('file')
-    dest=open(os.path.join(settings.FILE_UPLOAD_PATH, fname.name), 'wb+')
-    for chunk in fname.chunks():
-        dest.write(chunk)
-    dest.close()
-    return JsonResponse({'exec':'true'})
+    try:
+        fname = request.FILES.get('file')
+        dest=open(os.path.join(settings.FILE_UPLOAD_PATH, fname.name), 'wb+')
+        for chunk in fname.chunks():
+            dest.write(chunk)
+        dest.close()
+        print settings.FILE_UPLOAD_PATH, fname.name
+        reason = '%s 上传成功' % fname
+        return JsonResponse({'exec':'true', 'reason':reason})
+    except Exception as e:
+        reason = '%s 上传失败' % fname
+        return JsonResponse({'exec':'false', 'reason':reason})
 
 def delfile(request):
     fname = os.path.join(settings.FILE_UPLOAD_PATH, request.POST.get('file'))
@@ -252,11 +258,15 @@ def delfile(request):
         return JsonResponse({'exec':'false'})
 
 def listfile(request):
-    fdict = []
-    fname = os.listdir(settings.FILE_UPLOAD_PATH)
-    for item in fname:
-        fdict.append({'filename':item})
-    return JsonResponse({'filelist':fdict})
+    try:
+        fdict = []
+        fname = os.listdir(settings.FILE_UPLOAD_PATH)
+        for item in fname:
+            fdict.append({'name':item})
+        return JsonResponse({'exec' : 'true', 'filelist' : fdict})
+    except Exception as e:
+        reason = "执行失败,检查路径是否存在 %s" % settings.FILE_UPLOAD_PATH
+        return JsonResponse({'exec' : 'false', 'reason' : reason})
 
 #def backupfile(request):
 #    jarlist = request.POST.lists()[0][1]
