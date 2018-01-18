@@ -99,7 +99,7 @@ def handlesalt(result):
     for index,item in enumerate(data):
         for itemin in item:
             if data[index][itemin] != False:
-                data[index][itemin] =  data[index][itemin].replace('\n','<br>')
+                data[index][itemin] =  data[index][itemin].replace('\n','')
     return data
 
 def execcommand(data):
@@ -108,13 +108,14 @@ def execcommand(data):
     for item in data:
         path = remote_dir.get(item)
         hosts = host_map.get(item)
-        commands[item] = ("pepper -L '%s' cmd.run 'rsync -av --password-file=/etc/rsync.pass --delete --exclude logs root@%s::%s %s'" % (', '.join(hosts), rsync_server, item, path))
+        commands[item] = ("pepper -L '%s' cmd.run 'rsync -av --password-file=/etc/rsync.pass --delete --exclude logs root@%s::%s %s'" % (','.join(hosts), rsync_server, item, path))
     print commands
     for execitem in commands:
         result = subprocess.Popen(commands[execitem], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read()
         #results[execitem] = Prest(json.loads(result).get("return"))
         execdata = handlesalt(result)
         results[execitem] = execdata
+        print results
     return results
 
 import time

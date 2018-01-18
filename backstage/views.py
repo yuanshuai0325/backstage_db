@@ -352,13 +352,18 @@ def prodir(request):
         return JsonResponse({'exec':'false', 'reason':reason})
 
 def rollbackpath(request):
-    sdir = request.POST.get('sdir')
-    project = request.POST.get('project')
-    rbpath = repo_path.get(project)
-    shutil.move(os.path.join(rbpath, 'lastest'), os.path.join(rbpath, 'rollback'+sdir))
-    shutil.copytree(os.path.join(rbpath, sdir), os.path.join(rbpath, 'lastest'))
-    data = execcommand([project])
-    return JsonResponse({'successdata' : data})
+    try:
+        sdir = request.POST.get('sdir')
+        project = request.POST.get('project')
+        rbpath = repo_path.get(project)
+        shutil.move(os.path.join(rbpath, 'lastest'), os.path.join(rbpath, 'rollback'+sdir))
+        shutil.copytree(os.path.join(rbpath, sdir), os.path.join(rbpath, 'lastest'))
+        data = execcommand([project])
+        return JsonResponse({'exec' : 'true', 'successdata' : data})
+    except Exception as e:
+        print e
+        reason = "%s %s 回退失败" % (project, sdir)
+        return JsonResponse({'exec' : 'false', 'reason' : reason})
 
 def deldir(request):
     try:
