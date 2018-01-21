@@ -250,12 +250,19 @@ def postfile(request):
         return JsonResponse({'exec':'false', 'reason':reason})
 
 def delfile(request):
-    fname = os.path.join(settings.FILE_UPLOAD_PATH, request.POST.get('file'))
-    if os.path.exists(fname):
-        os.remove(fname)
-        return JsonResponse({'exec':'true'})
-    else:
-        return JsonResponse({'exec':'false'})
+    try:
+        filename = request.POST.get('file')
+        fname = os.path.join(settings.FILE_UPLOAD_PATH, filename)
+        if os.path.exists(fname):
+            os.remove(fname)
+            reason = "%s 删除成功" % filename
+            return JsonResponse({'exec':'true', 'reason':reason})
+        else:
+            reason = "%s 文件不存在" % filename
+            return JsonResponse({'exec':'false', 'reason':reason})
+    except Exception as e:
+        reason = "%s 删除失败，%s" % (filename, e)
+        return JsonResponse({'exec':'false', 'reason':reason})
 
 def listfile(request):
     try:
@@ -315,6 +322,7 @@ def listfile(request):
 #    print jarlist,dellist
 #    return JsonResponse({'successlist' : jarlist, 'faillist' : dellist})
 def backupfile(request):
+    print request.POST.lists()
     arg = request.POST.lists()[0][1]
     data = handledata(arg)
     successlist = data[0]
