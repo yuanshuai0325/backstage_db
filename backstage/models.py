@@ -23,3 +23,20 @@ class UserInfo(models.Model):
     password = models.CharField(max_length=100)
     status = models.ForeignKey('Status')
     role = models.ForeignKey('Role')
+
+class Repo(models.Model):
+    name = models.CharField(max_length=30)
+    lpath = models.CharField(max_length=50)
+    rpath = models.CharField(max_length=50)
+
+class Project(models.Model):
+    name = models.CharField(max_length=50)
+    sname = models.CharField(max_length=30)
+    repo = models.ForeignKey('Repo')
+
+class Hosts(models.Model):
+    host = models.CharField(max_length=50)
+    repo = models.ForeignKey('Repo')
+
+class Server(models.Model):
+    name = models.CharField(max_length=30)
