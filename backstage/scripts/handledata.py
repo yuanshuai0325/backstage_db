@@ -62,7 +62,7 @@ repo_path = {
     'asmsrv': '/repo/tongren/asmsrv',
 }
 host_map = {
-    'gw': ['154-100.test.com'],
+    'gw': ['154-100.test.com', 'client-102.test.com'],
     'msrv': ['test-101.test.com', 'client-102.test.com'],
     'tmsrv': ['154-100.test.com', 'client-102.test.com'],
     'code': ['154-100.test.com', 'test-101.test.com'],
@@ -118,11 +118,15 @@ def execcommand(data):
         print results
     return results
 
-import time
 def execcmdrun(tgt, pro, cmd):
     command = "pepper '%s' cmd.run 'supervisorctl %s %s'" % (tgt, cmd, pro)
-    time.sleep(2)
-    return command
+    result = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read()
+    execdata = json.loads(result).get("return")
+    for item in execdata[0]:
+        host = item
+        data = execdata[0][host].split('\n')
+    print data
+    return {'host':host,'data':data}
 
 
 #print execcommand(['gw'])

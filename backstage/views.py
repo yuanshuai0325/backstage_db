@@ -342,7 +342,7 @@ def updatefile(request):
     faillist = data[1]
     rmap = data[2]
     data = execcommand(rmap)
-    return JsonResponse({'successdata' : data, 'faillist' : faillist})
+    return JsonResponse({'successlist' : data, 'faillist' : faillist})
 
 def repodir(request):
     repodir = []
@@ -419,5 +419,5 @@ def cmdrun(request):
         data = execcmdrun(tgt, spro, cmd)
         return JsonResponse({'exec':'true', 'cmdreturn':data})
     except Exception as e:
-        reason  = "%s %s %s 执行失败" % (tgt, project, cmd)
+        reason  = "%s %s %s 执行失败, %s" % (tgt, project, cmd, e)
         return JsonResponse({'exec':'false', 'reason':reason})
