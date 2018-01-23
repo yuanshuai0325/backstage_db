@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from django.shortcuts import render, HttpResponse
-from backstage.models import UserInfo, Status, Role
+from backstage.models import UserInfo, Status, Role, Repo, Project, Hosts
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 import os
@@ -12,7 +12,8 @@ from django.http import JsonResponse
 
 from django.conf import settings
 
-from scripts.handledata import handledata, repo_map, repo_path, execcommand, host_map, short_name, execcmdrun
+#from scripts.handledata import handledata, repo_map, repo_path, execcommand, host_map, short_name, execcmdrun
+from scripts.handledata import handledata, execcommand, execcmdrun
 
 # 2017-12-22 token
 #from rest_framework.authtoken.models import Token
@@ -275,52 +276,6 @@ def listfile(request):
         reason = "执行失败,检查路径是否存在 %s" % settings.FILE_UPLOAD_PATH
         return JsonResponse({'exec' : 'false', 'reason' : reason})
 
-#def backupfile(request):
-#    jarlist = request.POST.lists()[0][1]
-#    rmap = []
-#    dellist = []
-#    repo_map = {
-#        'as-gateway-web': 'asgw',
-#        'as-interface-monitor':'asmsrv',
-#        'as-service-monitor':'asmsrv',
-#        'as-service-push':'asmsrv',
-#        'rc-service-code':'code',
-#        'rc-service-share':'code',
-#        'bbs':'gw',
-#        'rc-gateway-web':'gw',
-#        'rc-service-common':'msrv',
-#        'rc-service-file':'msrv',
-#        'rc-service-monitor':'msrv',
-#        'rc-service-msg':'msrv',
-#        'rc-service-solr':'msrv',
-#        'rc-service-user':'msrv',
-#        'rc-service-ofs':'tmsrv',
-#        'rc-service-itm':'tmsrv'
-#    }
-#    repo_path = {
-#        'asgw': '/repo/tongren/asgw',
-#        'asmsrv': '/repo/tongren/asmsrv',
-#        'code': '/repo/tongren/code',
-#        'gw': '/repo/tongren/gw',
-#        'msrv': '/repo/tongren/msrv',
-#        'tmsrv': '/repo/tongren/tmsrv',
-#    }
-#    for item in jarlist:
-#        temp = item.replace('-0.0.1-SNAPSHOT.jar', '').replace('.jar', '')
-#        print temp
-#        if repo_map.get(temp):
-#            rmap.append(repo_map.get(temp))
-#        else:
-#            dellist.append(item)
-#            jarlist.remove(item)
-#    rmap = set(rmap)
-#    for item in rmap:
-#        shutil.copytree(os.path.join(repo_path.get(item), 'lastest'), os.path.join(repo_path.get(item), time.strftime('%Y%m%d%H%M%S')))
-#    for item in jarlist:
-#        temp = item.replace('-0.0.1-SNAPSHOT.jar', '').replace('.jar', '')
-#        shutil.copyfile(os.path.join('/fupload/lastest/', item), os.path.join(repo_path.get(repo_map.get(temp)), 'lastest/'+item))
-#    print jarlist,dellist
-#    return JsonResponse({'successlist' : jarlist, 'faillist' : dellist})
 def backupfile(request):
     print request.POST.lists()
     arg = request.POST.lists()[0][1]
@@ -329,10 +284,14 @@ def backupfile(request):
     faillist = data[1]
     rmap = data[2]
     for item in rmap:
-        shutil.copytree(os.path.join(repo_path.get(item), 'lastest'), os.path.join(repo_path.get(item), time.strftime('%Y%m%d%H%M%S')))
+        data = Repo.objects.get(name=item)
+        lpath = data.lpath
+        #shutil.copytree(os.path.join(repo_path.get(item), 'lastest'), os.path.join(repo_path.get(item), time.strftime('%Y%m%d%H%M%S')))
+        shutil.copytree(os.path.join(lpath, 'lastest'), os.path.join(lpath, time.strftime('%Y%m%d%H%M%S')))
     for item in successlist:
         temp = item.replace('-0.0.1-SNAPSHOT.jar', '').replace('.jar', '')
-        shutil.copyfile(os.path.join('/fupload/lastest/', item), os.path.join(repo_path.get(repo_map.get(temp)), 'lastest/'+item))
+        #shutil.copyfile(os.path.join('/fupload/lastest/', item), os.path.join(repo_path.get(repo_map.get(temp)), 'lastest/'+item))
+        shutil.copyfile(os.path.join('/fupload/lastest/', item), os.path.join(lpath, 'lastest/'+item))
     return JsonResponse({'successlist' : successlist, 'faillist' : faillist})
 
 def updatefile(request):
@@ -346,25 +305,43 @@ def updatefile(request):
 
 def repodir(request):
     repodir = []
+    
     try:
-        for item in repo_map:
-            repodir.append({'label' : item, 'value': item})
+        data = Project.objects.all()
+        for item in data:
+            repodir.append({'label' : item.name, 'value': item.name})
         return JsonResponse({'exec':'true','repodir': repodir})
     except Exception as e:
-        reason = "repo_map列表获取失败"
+        reason = "jar列表名称获取失败 %s " % e
         return JsonResponse({'exec':'false', 'reason':reason})
+
+
+#    try:
+#        for item in repo_map:
+#            repodir.append({'label' : item, 'value': item})
+#        return JsonResponse({'exec':'true','repodir': repodir})
+#    except Exception as e:
+#        reason = "repo_map列表获取失败"
+#        return JsonResponse({'exec':'false', 'reason':reason})
 
 def prodir(request):
     projectdir = []
     try:
-        dirname = repo_map.get(request.GET.get('dirname'))
-        prodir = os.listdir(repo_path.get(dirname))
+        #dirname = repo_map.get(request.GET.get('dirname'))
+        #prodir = os.listdir(repo_path.get(dirname))
+        name = request.GET.get('dirname')
+        data = Project.objects.get(name=name)
+        project = data.repo.name
+        path = Repo.objects.get(name=project).lpath
+        prodir = os.listdir(path)
+
         print prodir
         prodir.remove('lastest')
         prodir.sort()
         for item in prodir:
             projectdir.append({'dir':item})
-        return JsonResponse({'exec' : 'true', 'prodir' : projectdir, 'path': repo_path.get(dirname), 'project' : dirname})
+        #return JsonResponse({'exec' : 'true', 'prodir' : projectdir, 'path': repo_path.get(dirname), 'project' : dirname})
+        return JsonResponse({'exec' : 'true', 'prodir' : projectdir, 'path': path, 'project' : project})
     except Exception as e:
         reason = "项目信息获取失败"
         return JsonResponse({'exec':'false', 'reason':reason})
@@ -373,7 +350,10 @@ def rollbackpath(request):
     try:
         sdir = request.POST.get('sdir')
         project = request.POST.get('project')
-        rbpath = repo_path.get(project)
+        #rbpath = repo_path.get(project)
+        tmp = Repo.objects.get(name=project)
+        rbpath = tmp.lpath
+
         shutil.move(os.path.join(rbpath, 'lastest'), os.path.join(rbpath, 'rollback'+sdir))
         shutil.copytree(os.path.join(rbpath, sdir), os.path.join(rbpath, 'lastest'))
         data = execcommand([project])
@@ -387,7 +367,10 @@ def deldir(request):
     try:
         deldir = request.POST.get('deldir')
         project = request.POST.get('project')
-        rbpath = repo_path.get(project)
+        #rbpath = repo_path.get(project)
+        data = Repo.objects.get(name=project)
+        rbpath = data.lpath
+
         os.system('rm -rf %s' % os.path.join(rbpath, deldir))
         reason = "%s %s 已删除" % (project, deldir)
         return JsonResponse({'exec' : 'true', 'reason':reason})
@@ -400,21 +383,29 @@ def prohosts(request):
     project = request.GET.get('project')
     print project
     try:
-        rmap = repo_map.get(project)
-        print rmap
-        hmap = host_map.get(rmap)
-        for host in hmap:
-            hosts.append({'host':host})
+        #rmap = repo_map.get(project)
+        #print rmap
+        #hmap = host_map.get(rmap)
+        data = Project.objects.get(name=project)
+        repo_id = data.repo_id
+        data = Hosts.objects.filter(repo_id=repo_id)
+        for host in data:
+            hosts.append({'host':host.host})
+        #for host in hmap:
+        #    hosts.append({'host':host})
+
         return JsonResponse({'exec':'true', 'hosts' : hosts})
     except Exception as e:
-        reason = "未获取到 %s" % project 
+        reason = "未获取到 %s, %s" % (project ,e)
         return JsonResponse({'exec':'false', 'reason':reason})
 
 def cmdrun(request):
     try:
         tgt = request.POST.get('tgt')
         project = request.POST.get('project')
-        spro = short_name.get(project)
+        #spro = short_name.get(project)
+        spro = Project.objects.get(name=project).repo.name
+
         cmd = request.POST.get('cmd')
         data = execcmdrun(tgt, spro, cmd)
         return JsonResponse({'exec':'true', 'cmdreturn':data})
