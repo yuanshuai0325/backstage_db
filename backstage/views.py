@@ -412,3 +412,25 @@ def cmdrun(request):
     except Exception as e:
         reason  = "%s %s %s 执行失败, %s" % (tgt, project, cmd, e)
         return JsonResponse({'exec':'false', 'reason':reason})
+
+def getall(request):
+    repo = []
+    all = {}
+    try:
+        data = Repo.objects.all()
+        for item in data:
+            repo.append((item.name, item.id))
+        for item in repo:
+            data = Project.objects.filter(repo_id=item[1])
+            tmp = []
+            for i in data:
+                tmp.append(i.sname)
+            data = Hosts.objects.filter(repo_id=item[1])
+            temp = []
+            for i in data:
+                temp.append(i.host)
+            all[item[0]] = {'projects' : tmp, 'hosts' : temp}
+        return JsonResponse({'exec' : 'true', 'repo':all})
+    except Exception as e:
+        reason = "数据获取失败, %s" % e
+        return JsonResponse({'exec':'false', 'reason':reason})
