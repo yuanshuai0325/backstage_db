@@ -18,10 +18,10 @@ insert into backstage_project(name, sname, repo_id) values('rc-service-ofs', 'of
 insert into backstage_project(name, sname, repo_id) values('rc-service-itm', 'itm', 3);
 insert into backstage_project(name, sname, repo_id) values('rc-service-code', 'code', 4);
 insert into backstage_project(name, sname, repo_id) values('rc-service-share', 'share', 4);
-insert into backstage_project(name, sname, repo_id) values('as-gateway-web', 'asgw', 5);
-insert into backstage_project(name, sname, repo_id) values('as-service-monitor', 'asmsrv', 6);
-insert into backstage_project(name, sname, repo_id) values('as-service-push', 'asmsrv', 6);
-insert into backstage_project(name, sname, repo_id) values('as-interface-monitor', 'asmsrv', 6);
+insert into backstage_project(name, sname, repo_id) values('as-gateway-web', 'as-gateway', 5);
+insert into backstage_project(name, sname, repo_id) values('as-service-monitor', 'as-monitor', 6);
+insert into backstage_project(name, sname, repo_id) values('as-service-push', 'as-push', 6);
+insert into backstage_project(name, sname, repo_id) values('as-interface-monitor', 'as-interface-monitor', 6);
 
 
 insert into backstage_hosts(host, repo_id) values('154-100.test.com', 1);
