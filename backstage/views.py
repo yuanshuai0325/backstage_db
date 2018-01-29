@@ -434,3 +434,23 @@ def getall(request):
     except Exception as e:
         reason = "数据获取失败, %s" % e
         return JsonResponse({'exec':'false', 'reason':reason})
+
+def addnewhost(request):
+    host = request.POST.get('host')
+    repo = request.POST.get('repo')
+    try:
+        data = Repo.objects.get(name=repo)
+        repo_id = data.id
+        #data = Hosts.objects.filter(repo_id=repo_id).filter(host=host).count()
+        data = Hosts.objects.filter(repo_id=repo_id).filter(host=host)
+        if len(data) != 0:
+            reason = "%s 在 %s 中已存在" % (host,repo)
+            return JsonResponse({'exec':'false', 'reason':reason})
+        else:
+            tmp = Hosts(host=host,repo_id=repo_id)
+            tmp.save()
+            reason = "已在 %s 中添加 %s " % (repo,host)
+            return JsonResponse({'exec':'true', 'reason':reason})
+    except Exception as e:
+        reason =  "在 %s 中添加 %s 失败, %s" % (repo,host,e)
+        return JsonResponse({'exec':'false', 'reason':reason})
