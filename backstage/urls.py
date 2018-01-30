@@ -1,5 +1,5 @@
 from django.conf.urls import url
-from backstage.views import adduser, deluser, veruser, userinfo, getalluser, chname, chpasswd, admincpw, chstatus, chrole, queryuser, postfile, delfile, listfile, backupfile, updatefile, repodir, prodir, rollbackpath, deldir, prohosts, cmdrun, getall, addnewhost
+from backstage.views import adduser, deluser, veruser, userinfo, getalluser, chname, chpasswd, admincpw, chstatus, chrole, queryuser, postfile, delfile, listfile, backupfile, updatefile, repodir, prodir, rollbackpath, deldir, prohosts, cmdrun, getall, addnewhost, delhost, addproject
 
 urlpatterns = [
     url(r'adduser', adduser),
@@ -26,4 +26,6 @@ urlpatterns = [
     url(r'cmdrun', cmdrun),
     url(r'getall', getall),
     url(r'addnewhost', addnewhost),
+    url(r'delhost', delhost),
+    url(r'addproject', addproject),
 ]

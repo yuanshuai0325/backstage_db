@@ -454,3 +454,39 @@ def addnewhost(request):
     except Exception as e:
         reason =  "在 %s 中添加 %s 失败, %s" % (repo,host,e)
         return JsonResponse({'exec':'false', 'reason':reason})
+
+def delhost(request):
+    host = request.POST.get('host')
+    repo = request.POST.get('repo')
+    try:
+        data = Repo.objects.get(name=repo)
+        repo_id = data.id
+        data = Hosts.objects.filter(repo_id=repo_id).filter(host=host).count()
+        if data != 0:
+            Hosts.objects.filter(repo_id=repo_id).filter(host=host).delete()
+            reason = "%s 在 %s 中已删除" % (host,repo)
+            return JsonResponse({'exec':'true', 'reason':reason})
+        else:
+            reason = "%s 中不存在 %s " % (repo,host)
+            return JsonResponse({'exec':'false', 'reason':reason})
+    except Exception as e:
+        reason =  "在 %s 中删除 %s 失败, %s" % (repo,host,e)
+        return JsonResponse({'exec':'false', 'reason':reason})
+
+def addproject(request):
+    project = request.POST.get('project')
+    repo = request.POST.get('repo')
+    try:
+        data = Repo.objects.get(name=repo)
+        repo_id = data.id
+        data = Project.objects.filter(repo_id=repo_id).filter(name=project).count()
+        if data !=0:
+            reason = "%s 已在 %s 中" % (project,repo)
+            return JsonResponse({'exec':'false', 'reason':reason})
+        else:
+            Project.objects.filter(name=project).update(repo_id=repo_id)
+            reason = "%s 已变更到 %s 中" % (project,repo)
+            return JsonResponse({'exec':'true', 'reason':reason})
+    except Exception as e:
+        reason =  "%s 变更到 %s 失败, %s" % (repo,host,e)
+        return JsonResponse({'exec':'false', 'reason':reason})
