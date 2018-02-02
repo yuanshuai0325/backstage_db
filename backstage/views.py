@@ -488,5 +488,42 @@ def addproject(request):
             reason = "%s 已变更到 %s 中" % (project,repo)
             return JsonResponse({'exec':'true', 'reason':reason})
     except Exception as e:
-        reason =  "%s 变更到 %s 失败, %s" % (repo,host,e)
+        reason =  "%s 变更到 %s 失败, %s" % (project,repo,e)
         return JsonResponse({'exec':'false', 'reason':reason})
+
+def delproject(request):
+    project = request.POST.get('project')
+    repo = request.POST.get('repo')
+    try:
+        data = Repo.objects.get(name=repo)
+        repo_id = data.id
+        data = Project.objects.filter(repo_id=repo_id).filter(sname=project).count()
+        if data == 0:
+            reason = "%s 不在 %s 中" % (project,repo)
+            return JsonResponse({'exec':'false', 'reason':reason})
+        else:
+            Project.objects.filter(sname=project).update(repo_id=0)
+            reason = "%s 已从 %s 中删除" % (project,repo)
+            return JsonResponse({'exec':'true', 'reason':reason})
+    except Exception as e:
+        reason =  "%s 从 %s 中删除失败, %s" % (repo,project,e)
+        return JsonResponse({'exec':'false', 'reason':reason})
+
+def addrepo(request):
+    repo = request.POST.get('repo')
+    lpath = request.POST.get('lpath')
+    rpath = request.POST.get('rpath')
+    print repo,lpath,rpath
+    try:
+        data = Repo.objects.filter(name=repo).count()
+        if not data:
+            adddata = Repo(name=repo, lpath=lpath, rpath=rpath)
+            adddata.save()
+            reason = "已添加新repo %s" % repo
+            return JsonResponse({'exec':'true', 'reason':reason})
+        else:
+            reason = "%s 已存在" % repo
+            return JsonResponse({'exec':'false', 'reason':reason})    
+    except Exception as e:        
+        reason = "添加 %s 失败" % repo
+        return JsonResponse({'exec':'false'})
