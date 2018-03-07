@@ -527,3 +527,19 @@ def addrepo(request):
     except Exception as e:        
         reason = "添加 %s 失败" % repo
         return JsonResponse({'exec':'false'})
+
+def delrepo(request):
+    repo = str(request.POST.get('repo'))
+    print repo
+    try:
+        data = Repo.objects.get(name=repo)
+        rid = data.id
+        print rid
+        Project.objects.filter(repo_id=rid).update(repo_id=0)
+        Hosts.objects.filter(repo_id=rid).delete()
+        Repo.objects.filter(name=repo).delete()
+        reason = "%s 已删除" % repo
+        return JsonResponse({'exec':'true', 'reason':reason})
+    except Exception as e:
+        reason = "删除 %s 失败" % repo
+        return JsonResponse({'exec':'false', 'reason':reason})
